@@ -13,7 +13,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import android.content.pm.PackageManager;
 import java.io.ByteArrayOutputStream;
-
 import android.util.Log;
 
 import java.io.FileOutputStream;
@@ -49,12 +48,7 @@ public class IGStory extends CordovaPlugin {
         String backgroundTopColor = args.getString(3);
         String backgroundBottomColor = args.getString(4);
 
-        Log.e(TAG, backgroundImageUrl);
-        Log.e(TAG, stickerAssetUrl);
-        Log.e(TAG, attributionLinkUrl);
-
-        if (!backgroundTopColor.isEmpty() && !backgroundBottomColor.isEmpty()) {
-          Log.e(TAG, "TOP COLOR HERE");
+        if (!backgroundTopColor.equals("null") !backgroundBottomColor.equals("null") && !backgroundTopColor.isEmpty() && !backgroundBottomColor.isEmpty()) {
           try {
             File parentDir = this.webView.getContext().getExternalFilesDir(null);
             File stickerImageFile = File.createTempFile("instagramSticker", ".png", parentDir);
@@ -107,49 +101,47 @@ public class IGStory extends CordovaPlugin {
             Uri stickerUri = null;
             Uri backgroundUri = null;
 
-            URL stickerURL = new URL(stickerAssetUrl);
-            saveImage(stickerURL, stickerImageFile);
+			URL stickerURL;
+			URL backgroundURL;
 
-            URL backgroundURL = new URL(backgroundImageUrl);
-            saveImage(backgroundURL, backgroundImageFile);
+			if (stickerAssetUrl != null && !stickerAssetUrl.isEmpty() && !stickerAssetUrl.equals("null")) {
+				stickerURL = new URL(stickerAssetUrl);
+            	saveImage(stickerURL, stickerImageFile);
+			}
 
-            Log.e(TAG, backgroundImageFile.toString());
-
-            //Uri backgroundUri = FileProvider.getUriForFile(this.cordova.getActivity().getBaseContext(), this.cordova.getActivity().getBaseContext().getPackageName() + ".provider" ,backgroundImageFile);
-            //Uri stickerUri = FileProvider.getUriForFile(this.cordova.getActivity().getBaseContext(), this.cordova.getActivity().getBaseContext().getPackageName() + ".provider" ,stickerImageFile);
+            if (backgroundImageUrl != null && !backgroundImageUrl.isEmpty() && !backgroundImageUrl.equals("null")) {
+				backgroundURL = new URL(backgroundImageUrl);
+        		saveImage(backgroundURL, backgroundImageFile);
+			}
 
             // Instantiate implicit intent with ADD_TO_STORY action,
             // background asset, sticker asset, and attribution link
             Intent intent = new Intent("com.instagram.share.ADD_TO_STORY");
             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-           /* if (Build.VERSION.SDK_INT < 26) {
-              // Handle the file uri with pre Oreo method
-              stickerUri = Uri.fromFile(stickerImageFile);
-              backgroundUri = Uri.fromFile(stickerImageFile);
-              intent.setDataAndType(backgroundUri, "image/*");
-              intent.putExtra("interactive_asset_uri", stickerUri);*/
-            //} else {
-              // Handle the file URI using Android Oreo file provider
-              FileProvider FileProvider = new FileProvider();
-              stickerUri = FileProvider.getUriForFile(this.cordova.getActivity().getBaseContext(), this.cordova.getActivity().getBaseContext().getPackageName() + ".provider" ,stickerImageFile);
-              backgroundUri = FileProvider.getUriForFile(this.cordova.getActivity().getBaseContext(), this.cordova.getActivity().getBaseContext().getPackageName() + ".provider" ,backgroundImageFile);
 
-              intent.setDataAndType(backgroundUri, "image/*");
-              intent.putExtra("interactive_asset_uri", stickerUri);
-           // }
+			FileProvider FileProvider = new FileProvider();
+			backgroundUri = FileProvider.getUriForFile(this.cordova.getActivity().getBaseContext(), this.cordova.getActivity().getBaseContext().getPackageName() + ".provider" ,backgroundImageFile);
 
-            intent.putExtra("content_url", attributionLinkUrl);
+			intent.setDataAndType(backgroundUri, "image/*");
 
-            // Instantiate activity and verify it will resolve implicit intent
-            Activity activity = this.cordova.getActivity();
-            activity.grantUriPermission(
-                    "com.instagram.android", stickerUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			// Instantiate activity and verify it will resolve implicit intent
+			Activity activity = this.cordova.getActivity();
+			if (stickerUri != null) {
+				stickerUri = FileProvider.getUriForFile(this.cordova.getActivity().getBaseContext(), this.cordova.getActivity().getBaseContext().getPackageName() + ".provider" ,stickerImageFile);
+				intent.putExtra("interactive_asset_uri", stickerUri);
+				activity.grantUriPermission("com.instagram.android", stickerUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+			}
+
+			if (attributionLinkUrl != null && !attributionLinkUrl.isEmpty() && !attributionLinkUrl.equals("null")) {
+				intent.putExtra("content_url", attributionLinkUrl);
+			}
 
             activity.startActivityForResult(intent, 0);
             callbackContext.success("shared");
           } catch (Exception e) {
-            callbackContext.error(e.getMessage());
+			e.printStackTrace();
+			callbackContext.error(e.getMessage());
           }
         }
       } else {
