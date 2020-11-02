@@ -20,7 +20,7 @@
     NSLog(@"This is backgroundURL: %@", backgroundImage);
     NSLog(@"This is stickerURL: %@", stickerImage);
 
-    if ([backgroundTopColor length] != 0  && [backgroundBottomColor length] != 0) {
+    if (backgroundTopColor != nil && backgroundBottomColor != nil && [backgroundTopColor length] != 0  && [backgroundBottomColor length] != 0) {
         NSURL *stickerImageURL = [NSURL URLWithString:stickerImage];
 
         NSError *stickerImageError;
@@ -36,13 +36,13 @@
         }
 
     } else {
-        NSURL *stickerImageURL = [NSURL URLWithString:stickerImage];
         NSURL *backgroundImageURL = [NSURL URLWithString:backgroundImage];
 
         NSError *backgroundImageError;
         NSData* imageDataBackground = [NSData dataWithContentsOfURL:backgroundImageURL options:NSDataReadingUncached error:&backgroundImageError];
 
-        if (imageDataBackground && !backgroundImageError) {
+        if (imageDataBackground && !backgroundImageError && stickerImage != nil && [stickerImage isKindOfClass:[NSString class]]) {
+            NSURL *stickerImageURL = [NSURL URLWithString:stickerImage];
             NSError *stickerImageError;
             NSData* stickerData = [NSData dataWithContentsOfURL:stickerImageURL options:NSDataReadingUncached error:&stickerImageError];
 
@@ -54,6 +54,8 @@
                     [self finishCommandWithResult:result commandId: command.callbackId];
                 });
             }
+        } else if (imageDataBackground && !backgroundImageError) {
+            [self shareBackgroundImage:imageDataBackground attributionURL:attributionURL commandId: command.callbackId];
         } else {
             CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Missing Image background"];
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -78,6 +80,46 @@
       // attribution link URL to pasteboard
       NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage" : backgroundImage,
                                      @"com.instagram.sharedSticker.stickerImage" : stickerImage,
+                                     @"com.instagram.sharedSticker.contentURL" : attributionURL}];
+      NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
+      // This call is iOS 10+, can use 'setItems' depending on what versions you support
+      [[UIPasteboard generalPasteboard] setItems:pasteboardItems options:pasteboardOptions];
+
+      [[UIApplication sharedApplication] openURL:urlScheme options:@{} completionHandler:nil];
+
+      NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:attributionURL, @"url", nil];
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                        messageAsDictionary:payload];
+
+      dispatch_async(dispatch_get_main_queue(), ^{
+          [self finishCommandWithResult:result commandId: command];
+       });
+
+    } else {
+      // Handle older app versions or app not installed case
+
+     NSLog(@"IG IS NOT AVAILABLE");
+
+    CDVPluginResult *result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Not installed"];
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self finishCommandWithResult:result commandId: command];
+     });
+    }
+}
+
+- (void)shareBackgroundImage:(NSData *)backgroundImage attributionURL:(NSString *)attributionURL commandId:(NSString *)command  {
+
+    // Verify app can open custom URL scheme. If able,
+    // assign assets to pasteboard, open scheme.
+    NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
+    if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+
+      NSLog(@"IG IS AVAIALBLE");
+
+      // Assign background and sticker image assets and
+      // attribution link URL to pasteboard
+      NSArray *pasteboardItems = @[@{@"com.instagram.sharedSticker.backgroundImage" : backgroundImage,
                                      @"com.instagram.sharedSticker.contentURL" : attributionURL}];
       NSDictionary *pasteboardOptions = @{UIPasteboardOptionExpirationDate : [[NSDate date] dateByAddingTimeInterval:60 * 5]};
       // This call is iOS 10+, can use 'setItems' depending on what versions you support
