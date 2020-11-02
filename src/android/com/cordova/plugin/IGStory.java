@@ -48,7 +48,7 @@ public class IGStory extends CordovaPlugin {
         String backgroundTopColor = args.getString(3);
         String backgroundBottomColor = args.getString(4);
 
-        if (!backgroundTopColor.equals("null") !backgroundBottomColor.equals("null") && !backgroundTopColor.isEmpty() && !backgroundBottomColor.isEmpty()) {
+        if (!backgroundTopColor.equals("null") && !backgroundBottomColor.equals("null") && !backgroundTopColor.isEmpty() && !backgroundBottomColor.isEmpty()) {
           try {
             File parentDir = this.webView.getContext().getExternalFilesDir(null);
             File stickerImageFile = File.createTempFile("instagramSticker", ".png", parentDir);
