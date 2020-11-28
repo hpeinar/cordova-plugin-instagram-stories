@@ -149,7 +149,7 @@ public class IGStory extends CordovaPlugin {
       }
 
 
-    } else if(action.equals("shareToStory")) {
+    } else if(action.equals("isInstalled")) {
         PackageManager pm = this.cordova.getActivity().getBaseContext().getPackageManager();
 
         if (isPackageInstalled("com.instagram.android", pm)) {
