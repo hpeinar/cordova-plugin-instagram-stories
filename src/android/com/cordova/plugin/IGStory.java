@@ -153,7 +153,11 @@ public class IGStory extends CordovaPlugin {
         PackageManager pm = this.cordova.getActivity().getBaseContext().getPackageManager();
 
         if (isPackageInstalled("com.instagram.android", pm)) {
-            callbackContext.success(pm.getPackageInfo("com.instagram.android", 0).versionName);
+            try {
+                callbackContext.success(pm.getPackageInfo("com.instagram.android", 0).versionName);
+            } catch (PackageManager.NameNotFoundException e) {
+                callbackContext.error("ig not installed");
+            }
         } else {
             callbackContext.error("ig not installed");
         }
