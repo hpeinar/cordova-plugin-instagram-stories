@@ -8,6 +8,22 @@
 
 }
 
+- (void)isInstalled:(CDVInvokedUrlCommand*)command {
+    self.callbackId = command.callbackId;
+    CDVPluginResult *result;
+
+    // Verify app can open custom URL scheme. If able,
+    // assign assets to pasteboard, open scheme.
+    NSURL *urlScheme = [NSURL URLWithString:@"instagram-stories://share"];
+    if ([[UIApplication sharedApplication] canOpenURL:urlScheme]) {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [self.commandDelegate sendPluginResult:result callbackId: self.callbackId];
+    } else {
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
+        [self.commandDelegate sendPluginResult:result callbackId: self.callbackId];
+    }
+}
+
 - (void)shareToStory:(CDVInvokedUrlCommand *)command {
     self.callbackId = command.callbackId;
 
