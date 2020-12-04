@@ -2,6 +2,17 @@
 Instagram Stories Sharing for Cordova
 ======
 
+*Fork: This fork added a possibility to check if Instagram app is installed for both platform.*
+```
+IGStory.isInstalled(() => {
+    console.log('Instagram is installed');
+},
+() => {
+    console.log('Instagram is not installed');
+});
+```
+
+
 This is a simple plugin that allows to share content to Instagram Stories using Facebook's API Documentation: https://developers.facebook.com/docs/instagram/sharing-to-stories/
 
 ## Installation
